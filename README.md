@@ -11,7 +11,8 @@ Features:
   * WebSockets by default with long-poll fallback
   * Automatic reconnect
   * Message buffering until reconnect timeout
-  * Cross-domain message server
+  * Cross-domain support
+  * Multiple connections
   * All major browsers supported (**TO BE VERIFIED**)
 
 Development

@@ -5,12 +5,13 @@
 </head>
 <body>
   <h1>Smith Transport Demo</h1>
+  <script src="engine.io.js"></script>
   <script src="jam/require.js"></script>
   <script>
 	requirejs.config({
 	    baseUrl: "/",
 	    paths: {
-	        "transport": "/transport/server"
+	        "transport": "/transport/client"
 	    }
 	});
   </script>

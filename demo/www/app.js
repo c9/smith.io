@@ -1,25 +1,58 @@
 
-require(["transport/client"], function (TRANSPORT_CLIENT) {
+require(["transport"], function (TRANSPORT) {
 
-	console.log("Connecting");
+	function connect(options) {
 
-	TRANSPORT_CLIENT.connect({
-		host: "localhost",
-		port: 8080,
-		prefix: "/transport/server"
-	}, function(err, transport) {
+		console.info("[" + options.host + ":" + options.port + "] Connecting");
 
-		console.log("Connected");
+		TRANSPORT.connect({
+			host: options.host,
+			port: options.port,
+			prefix: "/transport/server"
+		}, function(err, connection) {
 
-		transport.on("channel1", function(data) {
-			console.log("Channel 1 message", data);
-			transport.emit("channel1", data);
+			if (err) {
+				console.error(err);
+				return;
+			}
+
+			connection.on("connect", function() {
+				console.info("[" + options.host + ":" + options.port + "] Connected");
+			});
+			connection.on("disconnect", function(reason) {
+				console.info("[" + options.host + ":" + options.port + "] Disconnected", reason);
+				try {
+					connection.send("While client disconnected");
+				} catch(err) {
+					console.info(err);
+				}
+			});
+
+			connection.on("message", function(message) {
+				console.info("[" + options.host + ":" + options.port + "] Relaying message", message);
+				connection.send(message);
+			});
+
+			connection.on("away", function() {
+				console.info("[" + options.host + ":" + options.port + "] Away");
+				connection.send("While client away");
+			});
+			connection.on("back", function() {
+				console.info("[" + options.host + ":" + options.port + "] Back");
+				connection.send("Client back");
+			});
+
 		});
-		transport.on("channel2", function(data) {
-			console.log("Channel 2 message", data);
-			transport.emit("channel2", data);
-		});
+	}
 
+	connect({
+		host: "test-domain-1",
+		port: 8080
+	});
+
+	connect({
+		host: "test-domain-2",
+		port: 8080 + 1
 	});
 
 });

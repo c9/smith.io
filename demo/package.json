@@ -12,7 +12,8 @@
     },
     "dependencies": {
         "architect": "0.1.x",
-        "connect-architect": "0.0.x"
+        "connect-architect": "0.0.x",
+        "engine.io-client": "~0.2.0"        
     },
     "scripts": {
         "postinstall": "cd www && jam install smith events msgpack-js"

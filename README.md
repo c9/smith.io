@@ -8,17 +8,25 @@ Features:
 
   * Architect server plugin
   * `requirejs` compatible browser client module
-  * Architect browser plugin (**COMING SOON**)
   * WebSockets by default with long-poll fallback
   * Automatic reconnect
-  * `socket.io` compatible API
+  * Message buffering until reconnect timeout
+  * Cross-domain message server
   * All major browsers supported (**TO BE VERIFIED**)
 
 Development
 ===========
 
-	npm install
-	cd demo
-	npm install
+`/etc/hosts`:
+
+    127.0.0.1 test-domain-1
+    127.0.0.1 test-domain-2
+
+Commands:
+
+    npm install -g jamjs
+    npm install
+    cd demo
+    npm install
     node server
     open http://localhost:8080/

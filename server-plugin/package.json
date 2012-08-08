@@ -1,0 +1,14 @@
+{
+    "name": "architect-smith-transport-server-plugin",
+    "version": "0.0.1",
+    "main": "plugin.js",
+    "private": true,
+    "plugin": {
+        "provides": ["smith.transport.server"],
+        "consumes": [
+            "log",
+            "http",
+            "connect"
+        ]
+    }
+}

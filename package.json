@@ -1,0 +1,9 @@
+{
+	"name": "architect-smith-transport",
+	"version": "0.0.1",
+	"dependencies": {
+	    "smith": "~0.1.7",
+	    "engine.io": "~0.1.2",
+	    "engine.io-client": "~0.2.0"
+	}
+}

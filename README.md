@@ -37,7 +37,7 @@ Commands:
 Usage
 =====
 
-See: `./demo`.
+See: `./demo`
 
 
 License

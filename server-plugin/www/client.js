@@ -11,6 +11,11 @@ define(function(require, exports, module) {
 
 	var Transport = function(options) {
 		this.options = options;
+		this.options.host = this.options.host || document.location.host;
+		if (this.options.port === 443) {
+			this.options.secure = true;
+		}
+		this.options.port = this.options.port || document.location.port;
 		this.options.path = this.options.prefix;
 		delete this.options.prefix;
 		this.id = false;

@@ -44,10 +44,10 @@ function startServer(port) {
 
                 imports.connect.useStart(imports.connect.getModule().static(PATH.join(__dirname, "www")));
 
-                var transport = imports["smith.transport.server"];
+                var TRANSPORT = imports["smith.transport.server"];
 
                 // Fires once for every *new* client connection (not reconnects).
-                transport.on("connect", function(connection) {
+                TRANSPORT.on("connect", function(connection) {
 
                     console.log("[port: " + port + "] Connected:", connection.id);
 

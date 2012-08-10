@@ -2,7 +2,7 @@ smith.io
 ========
 
 An [engine.io](https://github.com/LearnBoost/engine.io) based transport layer using
-[Smith](https://github.com/c9/smith) for data encoding.
+[Smith](https://github.com/c9/smith) for data encoding. Can be used as a socket.io replacement.
 
 Features:
 

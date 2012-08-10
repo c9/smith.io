@@ -1,6 +1,6 @@
 {
-	"name": "smith.io",
-	"version": "0.0.1",
+    "name": "smith.io",
+    "version": "0.0.2",
     "author": "ajax.org B.V. <info@ajax.org>",
     "contributors": [
         {
@@ -12,8 +12,8 @@
         "type": "git",
         "url": "http://github.com/c9/smith.io.git"
     },
-	"dependencies": {
-	    "smith": "~0.1.7",
-	    "engine.io": "~0.1.2"
-	}
+    "dependencies": {
+        "smith": "~0.1.7",
+        "engine.io": "~0.1.2"
+    }
 }

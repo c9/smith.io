@@ -21,5 +21,8 @@
             "npm",
             "https://github.com/cadorn/engine.io/tarball/f31186d20b6e18455271e1986f48a70a4eae57d0"
         ]
+    },
+    "scripts": {
+        "postinstall": "sm install -N"
     }
 }

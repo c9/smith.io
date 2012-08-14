@@ -12,7 +12,7 @@
         "type": "git",
         "url": "http://github.com/c9/smith.io.git"
     },
-    "pm": "sm",
+    "pm": "npm",
     "dependencies": {
         "smith": "~0.1.7"
     },

@@ -12,9 +12,11 @@
         "type": "git",
         "url": "http://github.com/c9/smith.io.git"
     },
-    "pm": "npm",
+    "pm": "sm",
     "dependencies": {
-        "smith": "~0.1.7",
-        "engine.io": "~0.1.2"
+        "smith": "~0.1.7"
+    },
+    "mappings": {
+        "engine.io": ["npm", "https://github.com/cadorn/engine.io/tarball/f31186d20b6e18455271e1986f48a70a4eae57d0"]
     }
 }

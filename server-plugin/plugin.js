@@ -5,6 +5,7 @@ const SMITH = require("smith");
 const ENGINE_IO = require("engine.io");
 const EVENTS = require("events");
 
+// Switch from `away` to `disconnect` after this many milliseconds.
 const RECONNECT_TIMEOUT = 60 * 1000;
 
 
@@ -21,6 +22,10 @@ module.exports = function startup(options, imports, register) {
         var engine = ENGINE_IO.attach(imports.http.getServer(), {
             path: options.messageRoute
         });
+        engine.on("error", function(err) {
+            return register(err);
+        });
+
         engine.on("connection", function (socket) {
 
             var transport = new SMITH.EngineIoTransport(socket);

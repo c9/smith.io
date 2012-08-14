@@ -5,6 +5,7 @@ define(function(require, exports, module) {
 	var SMITH = require("smith");
 	var EVENTS = require("events");
 
+
 	function inherits(Child, Parent) {
 	    Child.prototype = Object.create(Parent.prototype, { constructor: { value: Child }});
 	}

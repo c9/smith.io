@@ -1,6 +1,6 @@
 {
     "name": "smith.io",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "author": "ajax.org B.V. <info@ajax.org>",
     "contributors": [
         {
@@ -17,6 +17,9 @@
         "smith": "~0.1.7"
     },
     "mappings": {
-        "engine.io": ["npm", "https://github.com/cadorn/engine.io/tarball/f31186d20b6e18455271e1986f48a70a4eae57d0"]
+        "engine.io": [
+            "npm",
+            "https://github.com/cadorn/engine.io/tarball/f31186d20b6e18455271e1986f48a70a4eae57d0"
+        ]
     }
 }

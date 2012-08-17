@@ -12,7 +12,7 @@ define(function(require, exports, module) {
 
 	var Transport = function(options) {
 		this.options = options;
-		this.options.host = this.options.host || document.location.host;
+		this.options.host = this.options.host || document.location.host.split(":")[0];
 		if (this.options.port === 443) {
 			this.options.secure = true;
 		}
@@ -24,7 +24,9 @@ define(function(require, exports, module) {
 		this.away = false;
 		this.buffer = false;
 	}
+    
 	inherits(Transport, EVENTS.EventEmitter);
+    
 	Transport.prototype.connect = function(options, callback) {
 		var _self = this;
 

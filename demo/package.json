@@ -11,11 +11,21 @@
         ]
     },
     "dependencies": {
-        "architect": "0.1.x",
-        "connect-architect": "0.0.x",
-        "engine.io-client": "~0.2.0"        
+        "architect": "~0.1.4",
+        "connect-architect": "~0.0.3",
+        "engine.io-client": "~0.2.1",
+        "jamjs": "~0.2.3"
+    },
+    "jam": {
+        "packageDir": "www/jam",
+        "baseUrl": "www",
+        "dependencies": {
+            "events": "~0.0.1",
+            "smith": "~0.1.7",
+            "msgpack-js": "~0.1.2"
+        }
     },
     "scripts": {
-        "postinstall": "cd www && jam install smith events msgpack-js"
+        "install": "jam install"
     }
 }

@@ -45,14 +45,6 @@ require(["transport"], function (TRANSPORT) {
 		});
 	}
 
-	connect({
-		host: "test-domain-1",
-		port: 8080
-	});
-
-	connect({
-		host: "test-domain-2",
-		port: 8080 + 1
-	});
+	connect({});
 
 });

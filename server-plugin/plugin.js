@@ -79,8 +79,11 @@ module.exports = function startup(options, imports, register) {
                     return;
                 }
                 timeouts[id] = setTimeout(function() {
-                    connections[id].ee.emit("disconnect", reason);
-                    delete connections[id];
+                    // the connection might not exist on the server
+                    if (connections[id]) {
+                        connections[id].ee.emit("disconnect", reason);
+                        delete connections[id];
+                    }
                     id = false;
                 }, RECONNECT_TIMEOUT);
                 connections[id].ee.emit("away");

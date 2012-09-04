@@ -53,7 +53,7 @@ module.exports = function startup(options, imports, register) {
                                         buffers[id] = [];
                                     }
                                     buffers[id].push(message);
-                                } else {
+                                } else if (connections[id]) {
                                     connections[id].transport.send(message);
                                 }
                             }

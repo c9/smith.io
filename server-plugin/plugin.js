@@ -1,4 +1,5 @@
 
+const ASSERT = require("assert");
 const PATH = require("path");
 const FS = require("fs");
 const SMITH = require("smith");
@@ -9,7 +10,39 @@ const EVENTS = require("events");
 const RECONNECT_TIMEOUT = 60 * 1000;
 
 
+var engines = [];
+
+function engineForResource(server, resource) {
+    for (var i=0; i<engines.length; i++) {
+        if (engines[i][0] === server && engines[i][1] === resource) {
+            return engines[i][2];
+        }
+    }
+
+    var engine = ENGINE_IO.attach(server, {
+        resource: resource
+    });
+    engine.on("error", function(err) {
+        console.error(err.stack);
+    });
+
+    engines.push([
+        server,
+        resource,
+        engine
+    ]);
+
+    return engine;
+}
+
+
 module.exports = function startup(options, imports, register) {
+
+    ASSERT(typeof options.messagePath !== "undefined", "`options.messagePath` is required");
+
+    if (typeof options.messageRoute === "undefined") {
+        options.messageRoute = options.messagePath;
+    }
 
     var gee = new EVENTS.EventEmitter();
 
@@ -19,14 +52,24 @@ module.exports = function startup(options, imports, register) {
         var timeouts = {};
         var buffers = {};
 
-        var engine = ENGINE_IO.attach(imports.http.getServer(), {
-            path: options.messageRoute
-        });
-        engine.on("error", function(err) {
-            return register(err);
-        });
+        var engine = engineForResource(imports.http.getServer(), options.messageRoute);
+
+        var match = null;
+        if (typeof options.messagePath === 'object' && options.messagePath.test) {
+            match = function (uri) {
+                return options.messagePath.test(uri);
+            };
+        } else {
+            match = function (uri) {
+                return options.messagePath == uri.substr(0, options.messagePath.length);
+            }
+        }
 
         engine.on("connection", function (socket) {
+
+            if (!match(socket.transport.request.url.substring(ENGINE_IO.URI_PREFIX.length))) {
+                return;
+            }
 
             var transport = new SMITH.EngineIoTransport(socket);
             var id = false;

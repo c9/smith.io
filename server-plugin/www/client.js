@@ -17,7 +17,8 @@ define(function(require, exports, module) {
 			this.options.secure = true;
 		}
 		this.options.port = this.options.port || document.location.port;
-		this.options.path = this.options.prefix;
+		this.options.path = "/engine.io";
+		this.options.resource = this.options.prefix.replace(/^\/|\/$/g, "");
 		delete this.options.prefix;
 		this.id = false;
 		this.connected = false;

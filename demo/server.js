@@ -25,7 +25,8 @@ function startServer(port) {
         {
             packagePath: "./../server-plugin",
             clientRoute: "/transport/client.js",
-            messageRoute: "/transport/server"
+            messageRoute: /^\/transport\/ser[ver]+/,
+            messagePath: "/transport/server"
         },
         {
             provides: [],

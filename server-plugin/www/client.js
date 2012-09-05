@@ -12,7 +12,7 @@ define(function(require, exports, module) {
 
 	var Transport = function(options) {
 		this.options = options;
-		this.options.host = this.options.host || document.location.host.split(":")[0];
+		this.options.host = this.options.host || document.location.hostname;
 		if (this.options.port === 443) {
 			this.options.secure = true;
 		}

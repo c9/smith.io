@@ -13,20 +13,14 @@ Features:
   * Multiple connections
   * `requirejs` compatible browser client module
   * `architect` compatible server plugin
-  * All major browsers supported (**TO BE VERIFIED**)
+  * All major browsers supported
 
 
 Development
 ===========
 
-`/etc/hosts`:
-
-    127.0.0.1 test-domain-1
-    127.0.0.1 test-domain-2
-
 Commands:
 
-    npm install -g jamjs
     npm install
     cd demo
     npm install

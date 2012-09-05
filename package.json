@@ -14,6 +14,6 @@
     },
     "dependencies": {
         "smith": "~0.1.7",
-        "engine.io": "https://github.com/c9/engine.io/tarball/007c574c97cdad7bede8ce3dbc47a6b2ed4dea51"
+        "engine.io": "https://github.com/c9/engine.io/tarball/c57caed0c34dd6cc7651c3c8326feb82ee6c4b9b"
     }
 }

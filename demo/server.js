@@ -8,6 +8,7 @@ function startServer(port) {
     var plugins = [
         {
             packagePath: "connect-architect/connect",
+            host: "localhost",
             port: port
         },
         {

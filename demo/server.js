@@ -59,6 +59,9 @@ function startServer(port) {
 
                     connection.on("message", function(message) {
                         console.log("[port: " + port + "] Got message:", message);
+                        if (typeof message === "string" && message.indexOf("ping:") === 0) {
+                            connection.send("pong: " + message.match(/\d+$/)[0]);
+                        }
                     });
 
                     connection.send({say:"Connected"});

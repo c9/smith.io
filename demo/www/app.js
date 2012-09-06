@@ -1,50 +1,57 @@
 
 require(["transport"], function (TRANSPORT) {
 
-	function connect(options) {
+	console.info("Connecting");
 
-		console.info("[" + options.host + ":" + options.port + "] Connecting");
+	TRANSPORT.connect({
+		prefix: "/transport/server"
+	}, function(err, connection) {
 
-		TRANSPORT.connect({
-			host: options.host,
-			port: options.port,
-			prefix: "/transport/server"
-		}, function(err, connection) {
+		if (err) {
+			console.error(err);
+			return;
+		}
 
-			if (err) {
-				console.error(err);
-				return;
-			}
+		var pingInterval = null;
 
-			connection.on("connect", function() {
-				console.info("[" + options.host + ":" + options.port + "] Connected");
-			});
-			connection.on("disconnect", function(reason) {
-				console.info("[" + options.host + ":" + options.port + "] Disconnected", reason);
-				try {
-					connection.send("While client disconnected");
-				} catch(err) {
-					console.info(err);
-				}
-			});
+		connection.on("connect", function() {
+			console.info("Connected");
 
-			connection.on("message", function(message) {
-				console.info("[" + options.host + ":" + options.port + "] Relaying message", message);
-				connection.send(message);
-			});
-
-			connection.on("away", function() {
-				console.info("[" + options.host + ":" + options.port + "] Away");
-				connection.send("While client away");
-			});
-			connection.on("back", function() {
-				console.info("[" + options.host + ":" + options.port + "] Back");
-				connection.send("Client back");
-			});
-
+			var index = 0; 
+			pingInterval = setInterval(function() {
+				index += 1;
+				console.log("Send", "ping: " + index);
+				connection.send("ping: " + index)
+			}, 1000);
 		});
-	}
+		connection.on("disconnect", function(reason) {
+			clearInterval(pingInterval);
+			console.info("Disconnected", reason);
+			try {
+				connection.send("While client disconnected");
+			} catch(err) {
+				console.info(err);
+			}
+		});
 
-	connect({});
+		connection.on("message", function(message) {
+            if (typeof message === "string" && message.indexOf("pong:") === 0) {
+				console.log("Received", message);
+            } else {
+				console.info("Relaying message", message);
+				connection.send(message);
+            }
+		});
+
+		connection.on("away", function() {
+			console.info("Away");
+			connection.send("While client away");
+		});
+		connection.on("back", function() {
+			console.info("Back");
+			connection.send("Client back");
+		});
+
+	});
 
 });

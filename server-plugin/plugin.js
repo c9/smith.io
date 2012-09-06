@@ -20,7 +20,9 @@ function engineForResource(server, resource) {
     }
 
     var engine = ENGINE_IO.attach(server, {
-        resource: resource
+        resource: resource,
+        pingTimeout: 5000,
+        pingInterval: 4000
     });
     engine.on("error", function(err) {
         console.error(err.stack);

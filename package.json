@@ -15,6 +15,6 @@
     "pm": "npm",
     "dependencies": {
         "smith": "~0.1.7",
-        "engine.io": "https://github.com/c9/engine.io/tarball/253265e5cbcca990f9bb291237ecd1b508cbc5dc"
+        "engine.io": "https://github.com/c9/engine.io/tarball/bf25a242b7b5894443e1067c736223f96eab4c37"
     }
 }

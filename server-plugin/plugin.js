@@ -38,8 +38,6 @@ function engineForResource(server, resource) {
 
 module.exports = function startup(options, imports, register) {
 
-    ASSERT(typeof options.messagePath !== "undefined", "`options.messagePath` is required");
-
     if (typeof options.messageRoute === "undefined") {
         options.messageRoute = options.messagePath;
     }

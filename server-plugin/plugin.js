@@ -12,7 +12,7 @@ const RECONNECT_TIMEOUT = 60 * 1000;
 
 var engines = [];
 
-function engineForResource(server, resource) {
+function engineForResource(server, resource, options) {
     for (var i=0; i<engines.length; i++) {
         if (engines[i][0] === server && engines[i][1] === resource) {
             return engines[i][2];
@@ -21,9 +21,10 @@ function engineForResource(server, resource) {
 
     var engine = ENGINE_IO.attach(server, {
         resource: resource,
-        pingTimeout: 5000,
-        pingInterval: 4000
+        pingTimeout: options.pingTimeout || 3000,
+        pingInterval: options.pingInterval || 15000
     });
+
     engine.on("error", function(err) {
         console.error(err.stack);
     });
@@ -52,7 +53,7 @@ module.exports = function startup(options, imports, register) {
         var timeouts = {};
         var buffers = {};
 
-        var engine = engineForResource(imports.http.getServer(), options.messageRoute);
+        var engine = engineForResource(imports.http.getServer(), options.messageRoute, options);
 
         var match = null;
         if (typeof options.messagePath === 'object' && options.messagePath.test) {

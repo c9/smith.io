@@ -13,7 +13,7 @@
     "dependencies": {
         "architect": "~0.1.4",
         "connect-architect": "~0.0.3",
-        "engine.io-client": "~0.2.1",
+        "engine.io-client": "https://github.com/c9/engine.io-client/tarball/348423707c523cf99e8987fe4c1493da0353959f",
         "jamjs": "~0.2.3"
     },
     "jam": {

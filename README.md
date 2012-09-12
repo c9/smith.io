@@ -16,10 +16,16 @@ Features:
   * All major browsers supported
 
 
-Development
-===========
+Usage
+=====
 
-Commands:
+See: `./demo`
+
+
+Contribute
+==========
+
+Development Setup:
 
     npm install
     cd demo
@@ -27,11 +33,9 @@ Commands:
     node server
     open http://localhost:8080/
 
+Testing:
 
-Usage
-=====
-
-See: `./demo`
+    npm test
 
 
 License

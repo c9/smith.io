@@ -3,7 +3,8 @@
 const PATH = require("path");
 const ARCHITECT = require("architect");
 
-function startServer(port) {
+
+exports.main = function main(port, callback) {
 
     var plugins = [
         {
@@ -50,15 +51,15 @@ function startServer(port) {
                 // Fires once for every *new* client connection (not reconnects).
                 TRANSPORT.on("connect", function(connection) {
 
-                    console.log("[port: " + port + "] Connected:", connection.id);
+                    console.log("Connected:", connection.id);
 
                     // Fires once after reconnect attempts have failed and a timeout has passed.
                     connection.once("disconnect", function(reason) {
-                        console.log("[port: " + port + "] Disconnected:", connection.id, reason);
+                        console.log("Disconnected:", connection.id, reason);
                     });
 
                     connection.on("message", function(message) {
-                        console.log("[port: " + port + "] Got message:", message);
+                        console.log("Got message:", message);
                         if (typeof message === "string" && message.indexOf("ping:") === 0) {
                             connection.send("pong: " + message.match(/\d+$/)[0]);
                         }
@@ -67,12 +68,12 @@ function startServer(port) {
                     connection.send({say:"Connected"});
 
                     connection.on("away", function() {
-                        console.log("[port: " + port + "] Away:", connection.id);
+                        console.log("Away:", connection.id);
                         connection.send({say:"While server away"});
                     });
 
                     connection.on("back", function() {
-                        console.log("[port: " + port + "] Back:", connection.id);
+                        console.log("Back:", connection.id);
                         connection.send({say:"Server back"});
                     });
                 });
@@ -84,12 +85,21 @@ function startServer(port) {
 
     ARCHITECT.createApp(ARCHITECT.resolveConfig(plugins, __dirname), function (err, app) {
         if (err) {
-            console.error("While starting!");
-            throw err;
+            return callback(err);
         }
-        console.log("Started!");
+        callback(null, app);
     });
 }
 
-var port = parseInt(process.env.PORT || 8080, 10);
-startServer(port);
+if (require.main === module) {
+    
+    var port = parseInt(process.env.PORT || 8080, 10);
+    
+    exports.main(port, function(err) {
+        if (err) {
+            console.error(err.stack);
+            process.exit(1);
+        }
+        // Server should now be running.
+    });
+}

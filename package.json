@@ -15,6 +15,9 @@
     "pm": "npm",
     "dependencies": {
         "smith": "~0.1.7",
-        "engine.io": "https://github.com/c9/engine.io/tarball/37f7d4f23f0462731ca65f905b7d8e8ce1336dde"
+        "engine.io": "https://github.com/c9/engine.io/tarball/5bc3682e6a438ba913c996627989f1134c26efb2"
+    },
+    "scripts": {
+        "test": "node test/all.js"
     }
 }

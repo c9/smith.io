@@ -12,20 +12,6 @@
     },
     "dependencies": {
         "architect": "~0.1.4",
-        "connect-architect": "~0.0.3",
-        "engine.io-client": "https://github.com/c9/engine.io-client/tarball/cdf25f5461821b7a80843d87414e2ee1add02873",
-        "jamjs": "~0.2.3"
-    },
-    "jam": {
-        "packageDir": "www/jam",
-        "baseUrl": "www",
-        "dependencies": {
-            "events": "~0.0.1",
-            "smith": "~0.1.7",
-            "msgpack-js": "~0.1.2"
-        }
-    },
-    "scripts": {
-        "install": "jam install"
+        "connect-architect": "~0.0.6"
     }
 }

@@ -1,5 +1,5 @@
 
-require(["transport"], function (TRANSPORT) {
+require(["smith.io"], function (TRANSPORT) {
 
 	console.info("Connecting");
 

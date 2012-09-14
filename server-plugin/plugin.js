@@ -20,6 +20,7 @@ function engineForResource(server, resource, options) {
     }
 
     var engine = ENGINE_IO.attach(server, {
+        path: "",
         resource: resource,
         pingTimeout: options.pingTimeout || 3000,
         pingInterval: options.pingInterval || 15000
@@ -68,7 +69,7 @@ module.exports = function startup(options, imports, register) {
 
         engine.on("connection", function (socket) {
 
-            if (!match(socket.transport.request.url.substring(ENGINE_IO.URI_PREFIX.length))) {
+            if (!match(socket.transport.request.url)) {
                 return;
             }
 
@@ -140,18 +141,55 @@ module.exports = function startup(options, imports, register) {
         });
     }
 
-    if (options.clientRoute) {
-        imports.connect.useStart(imports.connect.getModule().router(function(app) {
-            app.get(options.clientRoute, function(req, res) {
-                FS.readFile(PATH.join(__dirname, "www", "client.js"), function(err, data) {
-                    res.writeHead(200, {
-                        "Content-Type": "application/javascript",
-                        "Content-Length": data.length
-                    });
-                    res.end(data);
-                });
-            });
-        }));
+    if (options.registerClientRoutes !== false) {
+
+        imports.static.addStatics([{
+            path: PATH.dirname(require.resolve("engine.io-client/dist/engine.io.js")),
+            mount: "/engine.io",
+            rjs: [
+                {
+                    "name": "engine.io",
+                    "location": "engine.io",
+                    "main": "engine.io.js"
+                }
+            ]
+        }]);
+
+        imports.static.addStatics([{
+            path: PATH.join(__dirname, "www"),
+            mount: "/smith.io",
+            rjs: [
+                {
+                    "name": "smith.io",
+                    "location": "smith.io",
+                    "main": "client.js"
+                }
+            ]
+        }]);
+
+        imports.static.addStatics([{
+            path: PATH.dirname(require.resolve("smith.io/node_modules/smith")),
+            mount: "/smith",
+            rjs: [
+                {
+                    "name": "smith",
+                    "location": "smith",
+                    "main": "smith.js"
+                }
+            ]
+        }]);
+
+        imports.static.addStatics([{
+            path: PATH.dirname(require.resolve("msgpack-js-browser")),
+            mount: "/msgpack-js",
+            rjs: [
+                {
+                    "name": "msgpack-js",
+                    "location": "msgpack-js",
+                    "main": "msgpack.js"
+                }
+            ]
+        }]);
     }
 
     register(null, {

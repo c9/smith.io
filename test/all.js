@@ -99,7 +99,7 @@ function main(callback) {
 				testPackage(path, function(err) {
 					if (err) return callback(err);
 
-					path = PATH.join(__dirname, "../demo/node_modules/engine.io-client");
+					path = PATH.join(__dirname, "../node_modules/engine.io-client");
 
 					ensureDependenciesInstalled(path, "devDependencies", function(err) {
 						if (err) return callback(err);

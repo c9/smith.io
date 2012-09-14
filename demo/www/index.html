@@ -1,21 +1,39 @@
 <!doctype html>
 <html>
-<head>
-  <title>Smith Transport Demo</title>
-</head>
-<body>
-  <h1>Smith Transport Demo</h1>
-  <script src="engine.io.js"></script>
-  <script src="jam/require.js"></script>
-  <script>
-	requirejs.config({
-	    baseUrl: "/",
-	    paths: {
-	        "transport": "/transport/client"
-	    }
-	});
-  </script>
-  <script src="app.js"></script>
-  <p>Check your console for messages.</p>
-</body>
+    <head>
+        <title>Smith Transport Demo</title>
+    </head>
+    <body>
+        <h1>Smith Transport Demo</h1>
+        <script src="/require.js"></script>
+        <script>
+            requirejs.config({
+                baseUrl: "/static",
+                packages: [
+                    {
+                        "name": "engine.io",
+                        "location": "engine.io",
+                        "main": "engine.io.js"
+                    },
+                    {
+                        "name": "smith.io",
+                        "location": "smith.io",
+                        "main": "client.js"
+                    },
+                    {
+                        "name": "smith",
+                        "location": "smith",
+                        "main": "smith.js"
+                    },
+                    {
+                        "name": "msgpack-js",
+                        "location": "msgpack-js",
+                        "main": "msgpack.js"
+                    }
+                ]
+            });
+        </script>
+        <script src="app.js"></script>
+        <p>Check your console for messages.</p>
+    </body>
 </html>

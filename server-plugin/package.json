@@ -8,7 +8,8 @@
         "consumes": [
             "log",
             "http",
-            "connect"
+            "connect",
+            "static"
         ]
     }
 }

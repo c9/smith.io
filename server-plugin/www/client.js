@@ -1,9 +1,10 @@
 
 define(function(require, exports, module) {
 
+	require("engine.io");
 	var ENGINE_IO = eio;	// NOTE: `eio` is a global! See `npm info engine.io-client`.
 	var SMITH = require("smith");
-	var EVENTS = require("events");
+	var EVENTS = require("smith/events-amd");
 
 
 	function inherits(Child, Parent) {
@@ -17,7 +18,7 @@ define(function(require, exports, module) {
 			this.options.secure = true;
 		}
 		this.options.port = this.options.port || document.location.port;
-		this.options.path = "/engine.io";
+		this.options.path = "";
 		this.options.resource = this.options.prefix.replace(/^\/|\/$/g, "");
 		delete this.options.prefix;
 		this.id = false;

@@ -13,6 +13,10 @@ exports.main = function main(port, callback) {
             port: port
         },
         {
+            packagePath: "connect-architect/connect.static",
+            prefix: "/static"
+        },
+        {
             packagePath: "connect-architect/connect.session",
             key: "connect.architect." + port,
             secret: "1234"
@@ -25,7 +29,6 @@ exports.main = function main(port, callback) {
         },
         {
             packagePath: "./../server-plugin",
-            clientRoute: "/transport/client.js",
             messageRoute: /^\/transport\/ser[ver]+/,
             messagePath: "/transport/server"
         },
@@ -36,7 +39,7 @@ exports.main = function main(port, callback) {
                 "connect"
             ],
             setup: function(options, imports, register) {
-
+/*
                 imports.connect.useStart(imports.connect.getModule().router(function(app) {
                     app.get(/^(\/engine.io.js)$/, function(req, res) {
                         req.url = req.params[0];
@@ -44,6 +47,7 @@ exports.main = function main(port, callback) {
                     });
                 }));
 
+*/
                 imports.connect.useStart(imports.connect.getModule().static(PATH.join(__dirname, "www")));
 
                 var TRANSPORT = imports["smith.transport.server"];

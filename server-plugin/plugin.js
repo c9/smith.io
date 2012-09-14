@@ -168,7 +168,7 @@ module.exports = function startup(options, imports, register) {
         }]);
 
         imports.static.addStatics([{
-            path: PATH.dirname(require.resolve("smith.io/node_modules/smith")),
+            path: PATH.dirname(require.resolve("smith")),
             mount: "/smith",
             rjs: [
                 {

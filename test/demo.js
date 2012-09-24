@@ -8,7 +8,7 @@ exports.main = function (callback) {
 
 	var port = parseInt(process.env.PORT || 8080, 10);
 
-	DEMO_SERVER.main(port, function(err, app) {
+	DEMO_SERVER.main("localhost", port, function(err, app) {
 		if (err) return callback(err);
 
 

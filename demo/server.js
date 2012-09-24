@@ -4,12 +4,12 @@ const PATH = require("path");
 const ARCHITECT = require("architect");
 
 
-exports.main = function main(port, callback) {
+exports.main = function main(host, port, callback) {
 
     var plugins = [
         {
             packagePath: "connect-architect/connect",
-            host: "localhost",
+            host: host,
             port: port
         },
         {
@@ -96,10 +96,11 @@ exports.main = function main(port, callback) {
 }
 
 if (require.main === module) {
-    
+
+    var host = (process.argv.join(" ").match(/-h\s(\S*)/) || ["","localhost"])[1];
     var port = parseInt(process.env.PORT || 8080, 10);
-    
-    exports.main(port, function(err) {
+
+    exports.main(host, port, function(err) {
         if (err) {
             console.error(err.stack);
             process.exit(1);

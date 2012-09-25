@@ -6,6 +6,8 @@ define(function(require, exports, module) {
 	var SMITH = require("smith");
 	var EVENTS = require("smith/events-amd");
 
+	var transports = [];
+	var debugHandler = null;
 
 	function inherits(Child, Parent) {
 	    Child.prototype = Object.create(Parent.prototype, { constructor: { value: Child }});
@@ -28,7 +30,15 @@ define(function(require, exports, module) {
 	}
     
 	inherits(Transport, EVENTS.EventEmitter);
-    
+
+	Transport.prototype.getUri = function() {
+		return "http" + ((this.options.secure)?"s":"") + "://" + 
+			   this.options.host + 
+			   ((this.options.port)?":"+this.options.port:"") +
+			   this.options.path +
+			   this.options.resource;
+	}
+
 	Transport.prototype.connect = function(options, callback) {
 		var _self = this;
 
@@ -44,6 +54,10 @@ define(function(require, exports, module) {
 					connecting = false;
 					callback(err);
 				}
+			});
+
+			_self.socket.on("heartbeat", function () {
+				_self.emit("heartbeat");
 			});
 
 			_self.socket.on("open", function () {
@@ -108,6 +122,9 @@ define(function(require, exports, module) {
 						}
 
 						setTimeout(function() {
+
+							_self.emit("reconnect", options.reconnectAttempt);
+
 							_self.connect({
 								reconnectAttempt: options.reconnectAttempt,
 								fireConnect: (options.reconnectAttempt >= 6) ? true : false
@@ -143,8 +160,78 @@ define(function(require, exports, module) {
 
 	exports.connect = function(options, callback) {
 		var transport = new Transport(options, callback);
+		transports.push(transport);
+		if (debugHandler) {
+			debugHandler.hookTransport(transport);
+		}
 		transport.connect({}, callback);
 		return transport;
+	}
+
+	exports.setDebug = function(debug) {
+		if (debugHandler !== null) {
+			if (debug) return;
+			return debugHandler.stop();
+		} else if (!debug) return;
+		debugHandler = {
+			transports: [],
+			handlers: [],
+			start: function() {
+				transports.forEach(debugHandler.hookTransport);
+			},
+			stop: function() {
+				transports.forEach(debugHandler.unhookTransport);
+				debugHandler = null;
+			},
+			hookTransport: function(transport) {
+				var index = debugHandler.transports.indexOf(transport);
+				if (index !== -1) return;
+
+				console.log("[smith.io:" + transport.getUri() + "] Hook debugger");
+
+				var listeners = {};
+
+				transport.on("connect", listeners["connect"] = function() {
+					console.log("[smith.io:" + transport.getUri() + "] Connect");
+				});
+				transport.on("reconnect", listeners["reconnect"] = function(attempt) {
+					console.log("[smith.io:" + transport.getUri() + "] Reconnect: " + attempt);
+				});
+				transport.on("disconnect", listeners["disconnect"] = function(reason) {
+					console.log("[smith.io:" + transport.getUri() + "] Disconnect: " + reason);
+				});
+				transport.on("heartbeat", listeners["heartbeat"] = function(message) {
+					console.log("[smith.io:" + transport.getUri() + "] Heartbeat");
+				});
+				transport.on("message", listeners["message"] = function(message) {
+					console.log("[smith.io:" + transport.getUri() + "] Message", message);
+				});
+				transport.on("away", listeners["away"] = function() {
+					console.log("[smith.io:" + transport.getUri() + "] Away");
+				});
+				transport.on("back", listeners["back"] = function() {
+					console.log("[smith.io:" + transport.getUri() + "] Back");
+				});
+
+				debugHandler.transports.push(transport);
+				debugHandler.handlers.push({
+					unhook: function() {
+						console.log("[smith.io:" + transport.getUri() + "] Unhook debugger");
+						for (var type in listeners) {
+							transport.removeListener(type, listeners[type]);
+						}
+					}
+				});
+			},
+			unhookTransport: function(transport) {
+				var index = debugHandler.transports.indexOf(transport);
+				if (index === -1) return;
+				debugHandler.transports.splice(index, 1);
+				debugHandler.handlers[index].unhook();
+				debugHandler.handlers.splice(index, 1);
+			}
+		};
+		debugHandler.start();
 	}
 
 });

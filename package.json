@@ -16,8 +16,7 @@
     "dependencies": {
         "smith": "~0.1.9",
         "msgpack-js-browser": "~0.1.3",
-        "engine.io": "https://github.com/c9/engine.io/tarball/9042f79ee80d70d52ce82cf53815099312fdf5d0",
-        "engine.io-client": "https://github.com/c9/engine.io-client/tarball/a395f08d83676828f58b27badba72368299c009d"
+        "engine.io": "https://github.com/c9/engine.io/tarball/7e953da83edfad6f2c11307a1f846232c8093bae"
     },
     "scripts": {
         "test": "node test/all.js"

@@ -37,6 +37,15 @@ Testing:
 
     npm test
 
+Debugging:
+
+    Plugin Config ~ {
+        debug: true
+    }
+    
+    (function() { require(["smith.io"], function (TRANSPORT) { TRANSPORT.setDebug(true); localStorage.debug = "*"; }); })()
+    (function() { require(["smith.io"], function (TRANSPORT) { TRANSPORT.setDebug(false); localStorage.debug = ""; }); })()
+
 
 License
 =======

@@ -61,7 +61,7 @@ module.exports = function startup(options, imports, register) {
             match = function (uri) {
                 return options.messagePath.test(uri);
             };
-        } else {
+        } else if (typeof options.messagePath === 'string') {
             match = function (uri) {
                 return options.messagePath == uri.substr(0, options.messagePath.length);
             }
@@ -69,7 +69,7 @@ module.exports = function startup(options, imports, register) {
 
         engine.on("connection", function (socket) {
 
-            if (!match(socket.transport.request.url)) {
+            if (match && !match(socket.transport.request.url)) {
                 return;
             }
 

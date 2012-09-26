@@ -30,7 +30,8 @@ exports.main = function main(host, port, callback) {
         {
             packagePath: "./../server-plugin",
             messageRoute: /^\/transport\/ser[ver]+/,
-            messagePath: "/transport/server"
+            messagePath: "/transport/server",
+            debug: true
         },
         {
             provides: [],

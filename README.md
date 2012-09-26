@@ -43,8 +43,10 @@ Debugging:
         debug: true
     }
     
-    (function() { require(["smith.io"], function (TRANSPORT) { TRANSPORT.setDebug(true); localStorage.debug = "*"; }); })()
-    (function() { require(["smith.io"], function (TRANSPORT) { TRANSPORT.setDebug(false); localStorage.debug = ""; }); })()
+    (function() { require(["smith.io"], function (TRANSPORT) { TRANSPORT.setDebug(true, ["message", "engine.io"]); }); })()
+    (function() { require(["smith.io"], function (TRANSPORT) { TRANSPORT.setDebug(false); }); })()
+    
+    # Reload Browser
 
 
 License

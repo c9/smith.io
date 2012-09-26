@@ -168,11 +168,21 @@ define(function(require, exports, module) {
 		return transport;
 	}
 
-	exports.setDebug = function(debug) {
+	exports.setDebug = function(debug, events) {
 		if (debugHandler !== null) {
-			if (debug) return;
-			return debugHandler.stop();
-		} else if (!debug) return;
+			debugHandler.stop();
+		}
+		if (!debug) {
+			if (window.localStorage) {
+				localStorage.smithioDebug = "";
+				localStorage.debug = "";
+			}
+			return;
+		}
+		events = events || [];
+		if (window.localStorage) {
+			localStorage.smithioDebug = JSON.stringify([debug, events]);
+		}
 		debugHandler = {
 			transports: [],
 			handlers: [],
@@ -203,15 +213,23 @@ define(function(require, exports, module) {
 				transport.on("heartbeat", listeners["heartbeat"] = function(message) {
 					console.log("[smith.io:" + transport.getUri() + "] Heartbeat");
 				});
-				transport.on("message", listeners["message"] = function(message) {
-					console.log("[smith.io:" + transport.getUri() + "] Message", message);
-				});
+				if (events.indexOf("message") !== -1) {
+					transport.on("message", listeners["message"] = function(message) {
+						console.log("[smith.io:" + transport.getUri() + "] Message", message);
+					});
+				}
 				transport.on("away", listeners["away"] = function() {
 					console.log("[smith.io:" + transport.getUri() + "] Away");
 				});
 				transport.on("back", listeners["back"] = function() {
 					console.log("[smith.io:" + transport.getUri() + "] Back");
 				});
+
+				if (events.indexOf("engine.io") !== -1) {
+					if (window.localStorage) {
+						localStorage.debug = "*";
+					}
+				}
 
 				debugHandler.transports.push(transport);
 				debugHandler.handlers.push({
@@ -232,6 +250,10 @@ define(function(require, exports, module) {
 			}
 		};
 		debugHandler.start();
+	}
+
+	if (window.localStorage && localStorage.smithioDebug) {
+		exports.setDebug.apply(null, JSON.parse(localStorage.smithioDebug));
 	}
 
 });

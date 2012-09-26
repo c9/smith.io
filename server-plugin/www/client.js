@@ -171,14 +171,12 @@ define(function(require, exports, module) {
 	exports.setDebug = function(debug, events) {
 		if (debugHandler !== null) {
 			debugHandler.stop();
-		}
-		if (!debug) {
 			if (window.localStorage) {
 				localStorage.smithioDebug = "";
 				localStorage.debug = "";
 			}
-			return;
 		}
+		if (!debug) return;
 		events = events || [];
 		if (window.localStorage) {
 			localStorage.smithioDebug = JSON.stringify([debug, events]);

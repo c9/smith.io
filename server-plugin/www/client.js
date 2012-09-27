@@ -24,11 +24,12 @@ define(function(require, exports, module) {
 		this.options.resource = this.options.prefix.replace(/^\/|\/$/g, "");
 		delete this.options.prefix;
 		this.id = false;
+		this.connecting = false;
 		this.connected = false;
 		this.away = false;
 		this.buffer = false;
 	}
-    
+
 	inherits(Transport, EVENTS.EventEmitter);
 
 	Transport.prototype.getUri = function() {
@@ -44,14 +45,24 @@ define(function(require, exports, module) {
 
 		try {
 
-			var connecting = true;
+			if (!_self.away && _self.connected) {
+				throw new Error("smith.io '" + _self.getUri() + "' is already connected!");
+			}
+			if (!_self.away && _self.connecting) {
+				throw new Error("smith.io '" + _self.getUri() + "' is already connecting!");
+			}
+
+			_self.connecting = true;
 
 			_self.socket = new ENGINE_IO.Socket(_self.options);
 
 			_self.socket.on("error", function (err) {
 				// Only relay first connection error.
-				if (connecting === true) {
-					connecting = false;
+				if (_self.connecting === true) {
+					_self.connecting = false;
+					if (_self.debug) {
+						console.log("[smith.io:" + _self.getUri() + "] Connect error: " + err.stack);
+					}
 					callback(err);
 				}
 			});
@@ -62,7 +73,11 @@ define(function(require, exports, module) {
 
 			_self.socket.on("open", function () {
 
-				connecting = false;
+				_self.connecting = false;
+
+				if (_self.debug) {
+					console.log("[smith.io:" + _self.getUri() + "] Init new socket");
+				}
 
 				_self.transport = new SMITH.EngineIoTransport(_self.socket);
 
@@ -97,6 +112,10 @@ define(function(require, exports, module) {
 
 				_self.transport.on("disconnect", function (reason) {
 
+					if (_self.debug) {
+						console.log("[smith.io:" + _self.getUri() + "] Disconnect socket");
+					}
+
 					_self.away = true;
 					_self.emit("away");
 
@@ -121,7 +140,24 @@ define(function(require, exports, module) {
 							delay = 1 * 1000;
 						}
 
+						if (_self.debug) {
+							console.log("[smith.io:" + _self.getUri() + "] Schedule re-connect in: " + delay);
+						}
+
 						setTimeout(function() {
+
+							if (!_self.away && _self.connected) {
+								if (_self.debug) {
+									console.log("[smith.io:" + _self.getUri() + "] Don't re-connect. Already connected!");
+								}
+								return;
+							}
+							if (!_self.away && _self.connecting) {
+								if (_self.debug) {
+									console.log("[smith.io:" + _self.getUri() + "] Don't re-connect. Already connecting!");
+								}
+								return;
+							}
 
 							_self.emit("reconnect", options.reconnectAttempt);
 
@@ -164,6 +200,9 @@ define(function(require, exports, module) {
 		if (debugHandler) {
 			debugHandler.hookTransport(transport);
 		}
+		if (transport.debug) {
+			console.log("[smith.io:" + transport.getUri() + "] New transport", options);
+		}		
 		transport.connect({}, callback);
 		return transport;
 	}
@@ -199,6 +238,8 @@ define(function(require, exports, module) {
 
 				var listeners = {};
 
+				transport.debug = true;
+
 				transport.on("connect", listeners["connect"] = function() {
 					console.log("[smith.io:" + transport.getUri() + "] Connect");
 				});
@@ -233,6 +274,7 @@ define(function(require, exports, module) {
 				debugHandler.handlers.push({
 					unhook: function() {
 						console.log("[smith.io:" + transport.getUri() + "] Unhook debugger");
+						transport.debug = false;
 						for (var type in listeners) {
 							transport.removeListener(type, listeners[type]);
 						}

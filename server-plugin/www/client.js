@@ -8,6 +8,7 @@ define(function(require, exports, module) {
 
 	var transports = [];
 	var debugHandler = null;
+	var connectCounter = 0;
 
 	function inherits(Child, Parent) {
 	    Child.prototype = Object.create(Parent.prototype, { constructor: { value: Child }});
@@ -28,6 +29,7 @@ define(function(require, exports, module) {
 		this.connected = false;
 		this.away = false;
 		this.buffer = false;
+		this.connectIndex = -1;
 	}
 
 	inherits(Transport, EVENTS.EventEmitter);
@@ -42,6 +44,10 @@ define(function(require, exports, module) {
 
 	Transport.prototype.connect = function(options, callback) {
 		var _self = this;
+		connectCounter += 1;
+		_self.connectIndex = connectCounter;
+
+		var failed = false;
 
 		try {
 
@@ -57,17 +63,35 @@ define(function(require, exports, module) {
 			_self.socket = new ENGINE_IO.Socket(_self.options);
 
 			_self.socket.on("error", function (err) {
+				if (_self.debug) {
+					console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Connect error: " + err.stack);
+				}
 				// Only relay first connection error.
-				if (_self.connecting === true) {
+				if (!failed) {
+					failed = true;
+
 					_self.connecting = false;
-					if (_self.debug) {
-						console.log("[smith.io:" + _self.getUri() + "] Connect error: " + err.stack);
-					}
 					callback(err);
+
+					if (_self.debug) {
+						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Close failed socket (" + _self.socket.readyState + ") on error");
+					}
+					if (_self.socket.readyState !== "closed") {
+						_self.socket.close();
+					}
 				}
 			});
 
 			_self.socket.on("heartbeat", function () {
+				if (failed) {
+					if (_self.debug) {
+						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Close failed socket (" + _self.socket.readyState + ") on heartbeat");
+					}
+					if (_self.socket.readyState !== "closed") {
+						_self.socket.close();
+					}
+					return;
+				}
 				_self.emit("heartbeat");
 			});
 
@@ -75,8 +99,18 @@ define(function(require, exports, module) {
 
 				_self.connecting = false;
 
+				if (failed) {
+					if (_self.debug) {
+						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Close failed socket (" + _self.socket.readyState + ") on open");
+					}
+					if (_self.socket.readyState !== "closed") {
+						_self.socket.close();
+					}
+					return;
+				}
+
 				if (_self.debug) {
-					console.log("[smith.io:" + _self.getUri() + "] Init new socket");
+					console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Init new socket");
 				}
 
 				_self.transport = new SMITH.EngineIoTransport(_self.socket);
@@ -113,7 +147,7 @@ define(function(require, exports, module) {
 				_self.transport.on("disconnect", function (reason) {
 
 					if (_self.debug) {
-						console.log("[smith.io:" + _self.getUri() + "] Disconnect socket");
+						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Disconnect socket");
 					}
 
 					_self.away = true;
@@ -141,20 +175,20 @@ define(function(require, exports, module) {
 						}
 
 						if (_self.debug) {
-							console.log("[smith.io:" + _self.getUri() + "] Schedule re-connect in: " + delay);
+							console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Schedule re-connect in: " + delay);
 						}
 
 						setTimeout(function() {
 
 							if (!_self.away && _self.connected) {
 								if (_self.debug) {
-									console.log("[smith.io:" + _self.getUri() + "] Don't re-connect. Already connected!");
+									console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Don't re-connect. Already connected!");
 								}
 								return;
 							}
 							if (!_self.away && _self.connecting) {
 								if (_self.debug) {
-									console.log("[smith.io:" + _self.getUri() + "] Don't re-connect. Already connecting!");
+									console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Don't re-connect. Already connecting!");
 								}
 								return;
 							}
@@ -234,34 +268,34 @@ define(function(require, exports, module) {
 				var index = debugHandler.transports.indexOf(transport);
 				if (index !== -1) return;
 
-				console.log("[smith.io:" + transport.getUri() + "] Hook debugger");
+				console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Hook debugger");
 
 				var listeners = {};
 
 				transport.debug = true;
 
 				transport.on("connect", listeners["connect"] = function() {
-					console.log("[smith.io:" + transport.getUri() + "] Connect");
+					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Connect");
 				});
 				transport.on("reconnect", listeners["reconnect"] = function(attempt) {
-					console.log("[smith.io:" + transport.getUri() + "] Reconnect: " + attempt);
+					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Reconnect: " + attempt);
 				});
 				transport.on("disconnect", listeners["disconnect"] = function(reason) {
-					console.log("[smith.io:" + transport.getUri() + "] Disconnect: " + reason);
+					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Disconnect: " + reason);
 				});
 				transport.on("heartbeat", listeners["heartbeat"] = function(message) {
-					console.log("[smith.io:" + transport.getUri() + "] Heartbeat");
+					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Heartbeat");
 				});
 				if (events.indexOf("message") !== -1) {
 					transport.on("message", listeners["message"] = function(message) {
-						console.log("[smith.io:" + transport.getUri() + "] Message", message);
+						console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Message", message);
 					});
 				}
 				transport.on("away", listeners["away"] = function() {
-					console.log("[smith.io:" + transport.getUri() + "] Away");
+					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Away");
 				});
 				transport.on("back", listeners["back"] = function() {
-					console.log("[smith.io:" + transport.getUri() + "] Back");
+					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Back");
 				});
 
 				if (events.indexOf("engine.io") !== -1) {
@@ -273,7 +307,7 @@ define(function(require, exports, module) {
 				debugHandler.transports.push(transport);
 				debugHandler.handlers.push({
 					unhook: function() {
-						console.log("[smith.io:" + transport.getUri() + "] Unhook debugger");
+						console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Unhook debugger");
 						transport.debug = false;
 						for (var type in listeners) {
 							transport.removeListener(type, listeners[type]);

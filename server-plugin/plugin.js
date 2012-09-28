@@ -54,7 +54,10 @@ module.exports = function startup(options, imports, register) {
         var timeouts = {};
         var buffers = {};
 
-        var engine = engineForResource(imports.http.getServer(), options.messageRoute, options);
+        var server = imports.http.getServer();
+        var engine = engineForResource(server, options.messageRoute, options);
+
+        //failFirstRequest(server);
 
         var match = null;
         if (typeof options.messagePath === 'object' && options.messagePath.test) {
@@ -198,3 +201,37 @@ module.exports = function startup(options, imports, register) {
         }
     });
 };
+
+
+// Used to test re-connect when connect request fails.
+function failFirstRequest(server) {
+    var listeners = server.listeners("request"),
+        existingListeners = [];
+    for (var i = 0, l = listeners.length; i < l; i++) {
+        existingListeners[i] = listeners[i];
+    }
+    server.removeAllListeners("request");
+    server.on("request", function (req, res) {
+        var fireExisting = true;
+        if (/^\/transport\/server\//.test(req.url)) {
+            fireExisting = onTransportRequest(req, res);
+        }
+        if (fireExisting) {
+            for (var i = 0, l = existingListeners.length; i < l; i++) {
+                existingListeners[i].call(server, req, res);
+            }
+        }
+    });
+
+    var count = 0;
+    function onTransportRequest(req, res) {
+        count += 1;
+        console.log("REQUEST", req.url, count);
+        if (count === 1) {
+            console.log("  Fail request");
+            res.end("<An unparsable response>");
+            return false;
+        }
+        return true;
+    }
+}

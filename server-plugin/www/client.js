@@ -30,7 +30,7 @@ define(function(require, exports, module) {
         this.away = false;
         this.buffer = false;
         this.connectIndex = -1;
-    }
+    };
 
     inherits(Transport, EVENTS.EventEmitter);
 
@@ -40,7 +40,7 @@ define(function(require, exports, module) {
                ((this.options.port)?":"+this.options.port:"") +
                this.options.path +
                this.options.resource;
-    }
+    };
 
     Transport.prototype.connect = function(options, callback) {
         var _self = this;
@@ -126,12 +126,8 @@ define(function(require, exports, module) {
                         });
                         _self.away = false;
                         _self.connected = true;
-                        if (options.fireConnect !== false) {
-                            _self.emit("connect", _self);
-                        }
-                        else if (options.reconnectAttempt > 0) {
-                            _self.emit("back");
-                        }
+                        _self.emit("connect", _self);
+
                         options.reconnectAttempt = 0;
                         if (_self.buffer) {
                             _self.buffer.forEach(function(message) {
@@ -157,7 +153,7 @@ define(function(require, exports, module) {
 
                         options.reconnectAttempt += 1;
 
-                        if (options.reconnectAttempt === 6) {
+                        if (options.reconnectAttempt === 1) {
                             _self.away = false;
                             _self.connected = false;
                             _self.emit("disconnect", reason);
@@ -196,8 +192,7 @@ define(function(require, exports, module) {
                             _self.emit("reconnect", options.reconnectAttempt);
 
                             _self.connect({
-                                reconnectAttempt: options.reconnectAttempt,
-                                fireConnect: (options.reconnectAttempt >= 6) ? true : false
+                                reconnectAttempt: options.reconnectAttempt
                             }, function(err) {
                                 if (err) {
                                     connect();
@@ -214,7 +209,7 @@ define(function(require, exports, module) {
         } catch(err) {
             callback(err);
         }
-    }
+    };
     Transport.prototype.send = function(message) {
         if (this.connected === false) {
             throw new Error("Cannot send message while disconnected!");
@@ -226,7 +221,7 @@ define(function(require, exports, module) {
             this.buffer.push(message);
         }
         this.transport.send(message);
-    }
+    };
 
     exports.connect = function(options, callback) {
         var transport = new Transport(options, callback);
@@ -239,7 +234,7 @@ define(function(require, exports, module) {
         }
         transport.connect({}, callback);
         return transport;
-    }
+    };
 
     exports.setDebug = function(debug, events) {
         if (debugHandler !== null) {
@@ -294,9 +289,6 @@ define(function(require, exports, module) {
                 transport.on("away", listeners["away"] = function() {
                     console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Away");
                 });
-                transport.on("back", listeners["back"] = function() {
-                    console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Back");
-                });
 
                 if (events.indexOf("engine.io") !== -1) {
                     if (window.localStorage) {
@@ -324,7 +316,7 @@ define(function(require, exports, module) {
             }
         };
         debugHandler.start();
-    }
+    };
 
     if (window.localStorage && localStorage.smithioDebug) {
         exports.setDebug.apply(null, JSON.parse(localStorage.smithioDebug));

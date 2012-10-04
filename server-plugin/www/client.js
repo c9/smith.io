@@ -58,6 +58,10 @@ define(function(require, exports, module) {
 				throw new Error("smith.io '" + _self.getUri() + "' is already connecting!");
 			}
 
+			if (_self.debug) {
+				console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Try connect", options);
+			}
+
 			_self.connecting = true;
 
 			_self.socket = new ENGINE_IO.Socket(_self.options);
@@ -147,7 +151,7 @@ define(function(require, exports, module) {
 				_self.transport.on("disconnect", function (reason) {
 
 					if (_self.debug) {
-						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Disconnect socket");
+						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Disconnect socket: " + reason);
 					}
 
 					_self.away = true;

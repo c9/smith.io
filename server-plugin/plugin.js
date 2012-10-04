@@ -50,6 +50,7 @@ module.exports = function startup(options, imports, register) {
 
     if (options.messageRoute) {
 
+        var serverId = "server-id-" + Date.now();
         var connections = {};
         var timeouts = {};
         var buffers = {};
@@ -139,7 +140,8 @@ module.exports = function startup(options, imports, register) {
 
             transport.send({
                 type: "__ASSIGN-ID__",
-                id: socket.id + "-" + Date.now()
+                id: socket.id + "-" + Date.now(),
+                serverId: serverId
             });
         });
     }

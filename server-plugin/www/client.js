@@ -25,6 +25,7 @@ define(function(require, exports, module) {
 		this.options.resource = this.options.prefix.replace(/^\/|\/$/g, "");
 		delete this.options.prefix;
 		this.id = false;
+		this.serverId = false;
 		this.connecting = false;
 		this.connected = false;
 		this.away = false;
@@ -121,6 +122,20 @@ define(function(require, exports, module) {
 
 				_self.transport.on("legacy", function (message) {
 		            if (typeof message === "object" && message.type === "__ASSIGN-ID__") {
+
+		            	if (_self.serverId !== false && _self.serverId !== message.serverId) {
+		            		// If `message.serverId` does not match our cached `_self.serverId` we issue
+		            		// a connect as the server instance has changed and we may need to re-init.
+							if (_self.debug) {
+								console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Server rebooted. Issue re-connect.");
+							}
+							options.fireConnect = true;
+							if (_self.connected === true) {
+								_self.emit("disconnect", "server reboot");
+							}
+		            	}
+	            		_self.serverId = message.serverId;
+
 		            	if (_self.id === false) {
 			            	_self.id = message.id;
 			            }

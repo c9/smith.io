@@ -126,7 +126,7 @@ define(function(require, exports, module) {
 				}
 
 				if (_self.debug) {
-					console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Init new socket");
+					console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Init new socket (" + _self.socket.id + ")");
 				}
 
 				_self.transport = new SMITH.EngineIoTransport(_self.socket);
@@ -138,7 +138,7 @@ define(function(require, exports, module) {
 		            		// If `message.serverId` does not match our cached `_self.serverId` we issue
 		            		// a connect as the server instance has changed and we may need to re-init.
 							if (_self.debug) {
-								console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Server rebooted. Issue re-connect.");
+								console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Detected server reboot on handshake. Issue re-connect.");
 							}
 							options.fireConnect = true;
 							if (_self.connected === true) {

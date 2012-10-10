@@ -55,7 +55,7 @@ define(function(require, exports, module) {
 			if (!_self.away && _self.connected) {
 				throw new Error("smith.io '" + _self.getUri() + "' is already connected!");
 			}
-			if (!_self.away && _self.connecting) {
+			if (_self.connecting) {
 				throw new Error("smith.io '" + _self.getUri() + "' is already connecting!");
 			}
 
@@ -216,7 +216,7 @@ define(function(require, exports, module) {
 								}
 								return;
 							}
-							if (!_self.away && _self.connecting) {
+							if (_self.connecting) {
 								if (_self.debug) {
 									console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Don't re-connect. Already connecting!");
 								}

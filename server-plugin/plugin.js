@@ -23,7 +23,9 @@ function engineForResource(server, resource, options) {
         path: "",
         resource: resource,
         pingTimeout: options.pingTimeout || 3000,
-        pingInterval: options.pingInterval || 15000
+        pingInterval: options.pingInterval || 15000,
+        pongPayload: options.pongPayload
+//        transports: ["polling"]
     });
 
     engine.on("error", function(err) {
@@ -56,6 +58,9 @@ module.exports = function startup(options, imports, register) {
         var buffers = {};
 
         var server = imports.http.getServer();
+        options.pongPayload = {
+            serverId: serverId
+        };
         var engine = engineForResource(server, options.messageRoute, options);
 
         //failFirstRequest(server);

@@ -16,7 +16,7 @@
     "dependencies": {
         "smith": "https://github.com/c9/smith/tarball/packing-fix",
         "msgpack-js-browser": "~0.1.3",
-        "engine.io": "https://github.com/c9/engine.io/tarball/7e953da83edfad6f2c11307a1f846232c8093bae"
+        "engine.io": "https://github.com/c9/engine.io/tarball/f577126ce269ffb8eb2660922905bfea357d2e4e"
     },
     "scripts": {
         "test": "node test/all.js"

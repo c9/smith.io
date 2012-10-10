@@ -87,10 +87,21 @@ define(function(require, exports, module) {
 				}
 			});
 
-			_self.socket.on("heartbeat", function () {
+			_self.socket.on("heartbeat", function (pongPayload) {
 				if (failed) {
 					if (_self.debug) {
 						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Close failed socket (" + _self.socket.readyState + ") on heartbeat");
+					}
+					if (_self.socket.readyState !== "closed") {
+						_self.socket.close();
+					}
+					return;
+				} else
+				if (pongPayload && pongPayload.serverId && pongPayload.serverId !== _self.serverId) {
+            		// If `pongPayload.serverId` does not match our cached `_self.serverId` we close
+            		// the connection and re-connect as the server instance has changed and we may need to re-init.
+					if (_self.debug) {
+						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Detected server reboot on heartbeat. Close connection.");
 					}
 					if (_self.socket.readyState !== "closed") {
 						_self.socket.close();

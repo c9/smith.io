@@ -1,6 +1,6 @@
 {
     "name": "smith.io",
-    "version": "0.0.31",
+    "version": "0.0.32",
     "author": "ajax.org B.V. <info@ajax.org>",
     "contributors": [
         {
@@ -16,7 +16,7 @@
     "dependencies": {
         "smith": "https://github.com/c9/smith/tarball/packing-fix",
         "msgpack-js-browser": "~0.1.3",
-        "engine.io": "https://github.com/c9/engine.io/tarball/f577126ce269ffb8eb2660922905bfea357d2e4e"
+        "engine.io": "https://github.com/c9/engine.io/tarball/6ff56a20c12069f2cbdce904014c1a0a135e20d6"
     },
     "scripts": {
         "test": "node test/all.js"

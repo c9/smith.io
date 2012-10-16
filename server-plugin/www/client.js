@@ -14,6 +14,11 @@ define(function(require, exports, module) {
 	    Child.prototype = Object.create(Parent.prototype, { constructor: { value: Child }});
 	}
 
+	function getLogTimestamp() {
+		var date = new Date();
+		return "[" + date.toLocaleTimeString() + ":" + date.getMilliseconds() + "]";
+	}
+
 	var Transport = function(options) {
 		this.options = options;
 		this.options.host = this.options.host || document.location.hostname;
@@ -50,6 +55,10 @@ define(function(require, exports, module) {
 
 		var failed = false;
 
+		function log(message) {
+			console.log(getLogTimestamp() + "[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] " + message);
+		}
+
 		try {
 
 			if (!_self.away && _self.connected) {
@@ -60,7 +69,7 @@ define(function(require, exports, module) {
 			}
 
 			if (_self.debug) {
-				console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Try connect", options);
+				log("Try connect", options);
 			}
 
 			_self.connecting = true;
@@ -69,7 +78,7 @@ define(function(require, exports, module) {
 
 			_self.socket.on("error", function (err) {
 				if (_self.debug) {
-					console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Connect error: " + err.stack);
+					log("Connect error: " + err.stack);
 				}
 				// Only relay first connection error.
 				if (!failed) {
@@ -79,7 +88,7 @@ define(function(require, exports, module) {
 					callback(err);
 
 					if (_self.debug) {
-						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Close failed socket (" + _self.socket.readyState + ") on error");
+						log("Close failed socket (" + _self.socket.readyState + ") on error");
 					}
 					if (_self.socket.readyState !== "closed") {
 						_self.socket.close();
@@ -90,7 +99,7 @@ define(function(require, exports, module) {
 			_self.socket.on("heartbeat", function (pongPayload) {
 				if (failed) {
 					if (_self.debug) {
-						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Close failed socket (" + _self.socket.readyState + ") on heartbeat");
+						log("Close failed socket (" + _self.socket.readyState + ") on heartbeat");
 					}
 					if (_self.socket.readyState !== "closed") {
 						_self.socket.close();
@@ -101,7 +110,7 @@ define(function(require, exports, module) {
             		// If `pongPayload.serverId` does not match our cached `_self.serverId` we close
             		// the connection and re-connect as the server instance has changed and we may need to re-init.
 					if (_self.debug) {
-						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Detected server reboot on heartbeat. Close connection.");
+						log("Detected server reboot on heartbeat. Close connection.");
 					}
 					if (_self.socket.readyState !== "closed") {
 						_self.socket.close();
@@ -117,7 +126,7 @@ define(function(require, exports, module) {
 
 				if (failed) {
 					if (_self.debug) {
-						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Close failed socket (" + _self.socket.readyState + ") on open");
+						log("Close failed socket (" + _self.socket.readyState + ") on open");
 					}
 					if (_self.socket.readyState !== "closed") {
 						_self.socket.close();
@@ -126,7 +135,7 @@ define(function(require, exports, module) {
 				}
 
 				if (_self.debug) {
-					console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Init new socket (" + _self.socket.id + ")");
+					log("Init new socket (" + _self.socket.id + ")");
 				}
 
 				_self.transport = new SMITH.EngineIoTransport(_self.socket);
@@ -138,7 +147,7 @@ define(function(require, exports, module) {
 		            		// If `message.serverId` does not match our cached `_self.serverId` we issue
 		            		// a connect as the server instance has changed and we may need to re-init.
 							if (_self.debug) {
-								console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Detected server reboot on handshake. Issue re-connect.");
+								log("Detected server reboot on handshake. Issue re-connect.");
 							}
 							options.fireConnect = true;
 							if (_self.connected === true) {
@@ -177,7 +186,7 @@ define(function(require, exports, module) {
 				_self.transport.on("disconnect", function (reason) {
 
 					if (_self.debug) {
-						console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Disconnect socket: " + reason);
+						log("Disconnect socket: " + reason);
 					}
 
 					_self.away = true;
@@ -205,20 +214,20 @@ define(function(require, exports, module) {
 						}
 
 						if (_self.debug) {
-							console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Schedule re-connect in: " + delay);
+							log("Schedule re-connect in: " + delay);
 						}
 
 						setTimeout(function() {
 
 							if (!_self.away && _self.connected) {
 								if (_self.debug) {
-									console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Don't re-connect. Already connected!");
+									log("Don't re-connect. Already connected!");
 								}
 								return;
 							}
 							if (_self.connecting) {
 								if (_self.debug) {
-									console.log("[smith.io:" + _self.connectIndex + ":" + _self.getUri() + "] Don't re-connect. Already connecting!");
+									log("Don't re-connect. Already connecting!");
 								}
 								return;
 							}
@@ -265,7 +274,7 @@ define(function(require, exports, module) {
 			debugHandler.hookTransport(transport);
 		}
 		if (transport.debug) {
-			console.log("[smith.io:" + transport.getUri() + "] New transport", options);
+			console.log(getLogTimestamp() + "[smith.io:" + transport.getUri() + "] New transport", options);
 		}		
 		transport.connect({}, callback);
 		return transport;
@@ -298,34 +307,38 @@ define(function(require, exports, module) {
 				var index = debugHandler.transports.indexOf(transport);
 				if (index !== -1) return;
 
-				console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Hook debugger");
+				function log(message) {
+					console.log(getLogTimestamp() + "[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] " + message);
+				}
+
+				log("Hook debugger");
 
 				var listeners = {};
 
 				transport.debug = true;
 
 				transport.on("connect", listeners["connect"] = function() {
-					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Connect");
+					log("Connect");
 				});
 				transport.on("reconnect", listeners["reconnect"] = function(attempt) {
-					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Reconnect: " + attempt);
+					log("Reconnect: " + attempt);
 				});
 				transport.on("disconnect", listeners["disconnect"] = function(reason) {
-					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Disconnect: " + reason);
+					log("Disconnect: " + reason);
 				});
 				transport.on("heartbeat", listeners["heartbeat"] = function(message) {
-					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Heartbeat");
+					log("Heartbeat");
 				});
 				if (events.indexOf("message") !== -1) {
 					transport.on("message", listeners["message"] = function(message) {
-						console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Message", message);
+						log("Message", message);
 					});
 				}
 				transport.on("away", listeners["away"] = function() {
-					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Away");
+					log("Away");
 				});
 				transport.on("back", listeners["back"] = function() {
-					console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Back");
+					log("Back");
 				});
 
 				if (events.indexOf("engine.io") !== -1) {
@@ -337,7 +350,7 @@ define(function(require, exports, module) {
 				debugHandler.transports.push(transport);
 				debugHandler.handlers.push({
 					unhook: function() {
-						console.log("[smith.io:" + transport.connectIndex + ":" + transport.getUri() + "] Unhook debugger");
+						log("Unhook debugger");
 						transport.debug = false;
 						for (var type in listeners) {
 							transport.removeListener(type, listeners[type]);

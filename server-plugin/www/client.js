@@ -96,7 +96,7 @@ define(function(require, exports, module) {
 				}
 			});
 
-			_self.socket.on("heartbeat", function (pongPayload) {
+			_self.socket.on("pong", function (pongPayload) {
 				if (failed) {
 					if (_self.debug) {
 						log("Close failed socket (" + _self.socket.readyState + ") on heartbeat");
@@ -118,6 +118,18 @@ define(function(require, exports, module) {
 					return;
 				}
 				_self.emit("heartbeat");
+			});
+
+			_self.socket.on("heartbeat", function () {
+				if (failed) {
+					if (_self.debug) {
+						log("Close failed socket (" + _self.socket.readyState + ") on heartbeat");
+					}
+					if (_self.socket.readyState !== "closed") {
+						_self.socket.close();
+					}
+					return;
+				}
 			});
 
 			_self.socket.on("open", function () {

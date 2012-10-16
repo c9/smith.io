@@ -163,6 +163,7 @@ define(function(require, exports, module) {
 							}
 							options.fireConnect = true;
 							if (_self.connected === true) {
+								_self.connected = false;
 								_self.emit("disconnect", "server reboot");
 							}
 		            	}
@@ -175,6 +176,16 @@ define(function(require, exports, module) {
 			            	type: "__ANNOUNCE-ID__",
 			            	id: _self.id
 			            });
+			            if (_self.away && (Date.now()-_self.away) > 30*1000)  {
+							if (_self.debug) {
+								log("Long away (hibernate) detected. Issue re-connect.");
+							}
+							options.fireConnect = true;
+							if (_self.connected === true) {
+								_self.connected = false;
+								_self.emit("disconnect", "long away (hibernate)");
+							}
+			            }
 			            _self.away = false;
 			            _self.connected = true;
 			            if (options.fireConnect !== false) {
@@ -201,7 +212,7 @@ define(function(require, exports, module) {
 						log("Disconnect socket: " + reason);
 					}
 
-					_self.away = true;
+					_self.away = Date.now();
 					_self.emit("away");
 
 					function connect() {
@@ -270,7 +281,7 @@ define(function(require, exports, module) {
 		if (this.connected === false) {
 			throw new Error("Cannot send message while disconnected!");
 		}
-		else if(this.away === true) {
+		else if(this.away) {
 			if (!this.buffer) {
 				this.buffer = [];
 			}

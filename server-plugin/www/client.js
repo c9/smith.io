@@ -74,24 +74,99 @@ define(function(require, exports, module) {
 
 			_self.connecting = true;
 
+			function reconnect() {
+				if (_self.debug) {
+					log("Trigger re-connect scheduler.");
+				}
+
+				if (typeof options.reconnectAttempt === "undefined") {
+					options.reconnectAttempt = 0;
+				}
+
+				options.reconnectAttempt += 1;
+
+				if (options.reconnectAttempt === 6) {
+					_self.away = false;
+		            _self.connected = false;
+		            try {
+						_self.emit("disconnect", "away re-connect attempts exceeded");
+					} catch(err) {
+						console.error(err.stack);
+					}
+				}
+
+				var delay = 250;
+				if (options.reconnectAttempt > 10) {
+					delay = 15 * 1000;
+				}
+				else if (options.reconnectAttempt > 5) {
+					delay = 5 * 1000;
+				}
+				else if (options.reconnectAttempt > 3) {
+					delay = 1 * 1000;
+				}
+
+				if (_self.debug) {
+					log("Schedule re-connect in: " + delay);
+				}
+
+				setTimeout(function() {
+
+					if (!_self.away && _self.connected) {
+						if (_self.debug) {
+							log("Don't re-connect. Already connected!");
+						}
+						return;
+					}
+					if (_self.connecting) {
+						if (_self.debug) {
+							log("Don't re-connect. Already connecting!");
+						}
+						return;
+					}
+
+					try {
+						_self.emit("reconnect", options.reconnectAttempt);
+					} catch(err) {
+						console.error(err.stack);
+					}
+
+					_self.connect({
+						reconnectAttempt: options.reconnectAttempt,
+						fireConnect: (options.reconnectAttempt >= 6) ? true : false
+					}, function(err) {
+						if (err) {
+							reconnect();
+							return;
+						}
+					});
+				}, delay);
+			}
+
 			_self.socket = new ENGINE_IO.Socket(_self.options);
 
 			_self.socket.on("error", function (err) {
 				if (_self.debug) {
-					log("Connect error: " + err.stack);
+					log("Connect error (failed: " + failed + "): " + err.stack);
 				}
 				// Only relay first connection error.
 				if (!failed) {
 					failed = true;
 
 					_self.connecting = false;
-					callback(err);
+					try {
+						callback(err);
+					} catch(err) {
+						console.error(err.stack);
+					}
 
 					if (_self.debug) {
 						log("Close failed socket (" + _self.socket.readyState + ") on error");
 					}
 					if (_self.socket.readyState !== "closed") {
-						_self.socket.close();
+						try {
+							_self.socket.close();
+						} catch(err) {}
 					}
 				}
 			});
@@ -102,7 +177,9 @@ define(function(require, exports, module) {
 						log("Close failed socket (" + _self.socket.readyState + ") on heartbeat");
 					}
 					if (_self.socket.readyState !== "closed") {
-						_self.socket.close();
+						try {
+							_self.socket.close();
+						} catch(err) {}
 					}
 					return;
 				} else
@@ -113,7 +190,9 @@ define(function(require, exports, module) {
 						log("Detected server reboot on heartbeat. Close connection.");
 					}
 					if (_self.socket.readyState !== "closed") {
-						_self.socket.close();
+						try {
+							_self.socket.close();
+						} catch(err) {}
 					}
 					return;
 				}
@@ -126,7 +205,9 @@ define(function(require, exports, module) {
 						log("Close failed socket (" + _self.socket.readyState + ") on heartbeat");
 					}
 					if (_self.socket.readyState !== "closed") {
-						_self.socket.close();
+						try {
+							_self.socket.close();
+						} catch(err) {}
 					}
 					return;
 				}
@@ -141,7 +222,9 @@ define(function(require, exports, module) {
 						log("Close failed socket (" + _self.socket.readyState + ") on open");
 					}
 					if (_self.socket.readyState !== "closed") {
-						_self.socket.close();
+						try {
+							_self.socket.close();
+						} catch(err) {}
 					}
 					return;
 				}
@@ -164,7 +247,11 @@ define(function(require, exports, module) {
 							options.fireConnect = true;
 							if (_self.connected === true) {
 								_self.connected = false;
-								_self.emit("disconnect", "server reboot");
+								try {
+									_self.emit("disconnect", "server reboot");
+								} catch(err) {
+									console.error(err.stack);
+								}
 							}
 		            	}
 	            		_self.serverId = message.serverId;
@@ -183,16 +270,28 @@ define(function(require, exports, module) {
 							options.fireConnect = true;
 							if (_self.connected === true) {
 								_self.connected = false;
-								_self.emit("disconnect", "long away (hibernate)");
+								try {
+									_self.emit("disconnect", "long away (hibernate)");
+								} catch(err) {
+									console.error(err.stack);
+								}									
 							}
 			            }
 			            _self.away = false;
 			            _self.connected = true;
 			            if (options.fireConnect !== false) {
-							_self.emit("connect", _self);
+			            	try {
+								_self.emit("connect", _self);
+							} catch(err) {
+								console.error(err.stack);
+							}
 						}
 						else if (options.reconnectAttempt > 0) {
-							_self.emit("back");
+							try {
+								_self.emit("back");
+							} catch(err) {
+								console.error(err.stack);
+							}								
 						}
 						options.reconnectAttempt = 0;
 						if (_self.buffer) {
@@ -202,7 +301,11 @@ define(function(require, exports, module) {
 							_self.buffer = false;
 						}
 		            } else {
-						_self.emit("message", message);
+		            	try {
+							_self.emit("message", message);
+						} catch(err) {
+							console.error(err.stack);
+						}							
 		            }
 				});
 
@@ -212,63 +315,16 @@ define(function(require, exports, module) {
 						log("Disconnect socket: " + reason);
 					}
 
-					_self.away = Date.now();
-					_self.emit("away");
-
-					function connect() {
-
-						options.reconnectAttempt += 1;
-
-						if (options.reconnectAttempt === 6) {
-							_self.away = false;
-				            _self.connected = false;
-							_self.emit("disconnect", reason);
+					if (_self.connected) {
+						_self.away = Date.now();
+						try {
+							_self.emit("away");
+						} catch(err) {
+							console.error(err.stack);
 						}
-
-						var delay = 250;
-						if (options.reconnectAttempt > 10) {
-							delay = 15 * 1000;
-						}
-						else if (options.reconnectAttempt > 5) {
-							delay = 5 * 1000;
-						}
-						else if (options.reconnectAttempt > 3) {
-							delay = 1 * 1000;
-						}
-
-						if (_self.debug) {
-							log("Schedule re-connect in: " + delay);
-						}
-
-						setTimeout(function() {
-
-							if (!_self.away && _self.connected) {
-								if (_self.debug) {
-									log("Don't re-connect. Already connected!");
-								}
-								return;
-							}
-							if (_self.connecting) {
-								if (_self.debug) {
-									log("Don't re-connect. Already connecting!");
-								}
-								return;
-							}
-
-							_self.emit("reconnect", options.reconnectAttempt);
-
-							_self.connect({
-								reconnectAttempt: options.reconnectAttempt,
-								fireConnect: (options.reconnectAttempt >= 6) ? true : false
-							}, function(err) {
-								if (err) {
-									connect();
-									return;
-								}
-							});
-						}, delay);
 					}
-					connect();
+
+					reconnect();
 				});
 				callback(null, _self);
 			});

@@ -335,7 +335,10 @@ define(function(require, exports, module) {
 	}
 	Transport.prototype.send = function(message) {
 		if (this.connected === false) {
-			throw new Error("Cannot send message while disconnected!");
+			var err = new Error("Cannot send smith.io message while disconnected! Sender should respect connect/disconnect states!");
+			// We log error here in case sender does not catch.
+			console.log(err.stack);
+			throw err;
 		}
 		else if(this.away) {
 			if (!this.buffer) {

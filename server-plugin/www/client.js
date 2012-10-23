@@ -226,14 +226,8 @@ define(function(require, exports, module) {
 						}
 
 						var delay = 250;
-						if (options.reconnectAttempt > 10) {
-							delay = 15 * 1000;
-						}
-						else if (options.reconnectAttempt > 5) {
-							delay = 5 * 1000;
-						}
-						else if (options.reconnectAttempt > 3) {
-							delay = 1 * 1000;
+						if (options.reconnectAttempt > 1) {
+							delay = Math.pow(2, options.reconnectAttempt) * 1000;
 						}
 
 						if (_self.debug) {

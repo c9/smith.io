@@ -311,9 +311,14 @@ define(function(require, exports, module) {
 
 				_self.transport.on("disconnect", ondisconnect);
 				_self.transport.on("error", ondisconnect);
+				var once = false;
 				function ondisconnect(reason) {
 					// Ignore probe errors
 					if (/probe error/i.test(reason)) return;
+
+					// Only one try to reconnect
+					if (once) return;
+					once = true;
 
 					if (_self.debug) {
 						log("Disconnect socket: " + reason);

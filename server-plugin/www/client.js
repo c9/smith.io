@@ -309,7 +309,11 @@ define(function(require, exports, module) {
 		            }
 				});
 
-				_self.transport.on("disconnect", function (reason) {
+				_self.transport.on("disconnect", ondisconnect);
+				_self.transport.on("error", ondisconnect);
+				function ondisconnect(reason) {
+					// Ignore probe errors
+					if (/probe error/i.test(reason)) return;
 
 					if (_self.debug) {
 						log("Disconnect socket: " + reason);
@@ -325,7 +329,7 @@ define(function(require, exports, module) {
 					}
 
 					reconnect();
-				});
+				};
 				callback(null, _self);
 			});
 

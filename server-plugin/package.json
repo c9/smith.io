@@ -6,6 +6,7 @@
     "plugin": {
         "provides": ["smith.transport.server"],
         "consumes": [
+            "vfs",
             "log",
             "http",
             "connect",

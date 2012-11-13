@@ -3,12 +3,15 @@ define(function(require, exports, module) {
 
 	require("engine.io");
 	var ENGINE_IO = eio;	// NOTE: `eio` is a global! See `npm info engine.io-client`.
-	var SMITH = require("smith");
 	var EVENTS = require("smith/events-amd");
+	var Consumer = require('vfs-socket/consumer').Consumer;
+	var SMITH = require('vfs-socket/consumer').smith;
 
 	var transports = [];
 	var debugHandler = null;
 	var connectCounter = 0;
+
+	var consumer = new Consumer();
 
 	function inherits(Child, Parent) {
 	    Child.prototype = Object.create(Parent.prototype, { constructor: { value: Child }});
@@ -41,8 +44,8 @@ define(function(require, exports, module) {
 	inherits(Transport, EVENTS.EventEmitter);
 
 	Transport.prototype.getUri = function() {
-		return "http" + ((this.options.secure)?"s":"") + "://" + 
-			   this.options.host + 
+		return "http" + ((this.options.secure)?"s":"") + "://" +
+			   this.options.host +
 			   ((this.options.port)?":"+this.options.port:"") +
 			   this.options.path +
 			   this.options.resource;
@@ -233,7 +236,14 @@ define(function(require, exports, module) {
 					log("Init new socket (" + _self.socket.id + ")");
 				}
 
-				_self.transport = new SMITH.EngineIoTransport(_self.socket);
+				_self.transport = new SMITH.EngineIoTransport(_self.socket, _self.debug);
+
+				consumer.connect(_self.transport, function (err, vfs) {
+					if (err) throw err;
+					window.vfs = vfs;
+					console.log("vfs", vfs);
+				});
+
 
 				_self.transport.on("legacy", function (message) {
 		            if (typeof message === "object" && message.type === "__ASSIGN-ID__") {
@@ -274,7 +284,7 @@ define(function(require, exports, module) {
 									_self.emit("disconnect", "long away (hibernate)");
 								} catch(err) {
 									console.error(err.stack);
-								}									
+								}
 							}
 			            }
 			            _self.away = false;
@@ -291,7 +301,7 @@ define(function(require, exports, module) {
 								_self.emit("back");
 							} catch(err) {
 								console.error(err.stack);
-							}								
+							}
 						}
 						options.reconnectAttempt = 0;
 						if (_self.buffer) {
@@ -302,10 +312,10 @@ define(function(require, exports, module) {
 						}
 		            } else {
 		            	try {
-							_self.emit("message", message);
+							_self.emit("legacy", message);
 						} catch(err) {
 							console.error(err.stack);
-						}							
+						}
 		            }
 				});
 
@@ -366,8 +376,9 @@ define(function(require, exports, module) {
 		}
 		if (transport.debug) {
 			console.log(getLogTimestamp() + "[smith.io:" + transport.getUri() + "] New transport", options);
-		}		
+		}
 		transport.connect({}, callback);
+
 		return transport;
 	}
 

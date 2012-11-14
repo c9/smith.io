@@ -2,9 +2,11 @@
 const ASSERT = require("assert");
 const PATH = require("path");
 const FS = require("fs");
-const SMITH = require("smith");
 const ENGINE_IO = require("engine.io");
 const EVENTS = require("events");
+var Worker = require('vfs-socket/worker').Worker;
+var SMITH = require('vfs-socket/worker').smith;
+
 
 // Switch from `away` to `disconnect` after this many milliseconds.
 const RECONNECT_TIMEOUT = 60 * 1000;
@@ -49,6 +51,7 @@ module.exports = function startup(options, imports, register) {
     }
 
     var gee = new EVENTS.EventEmitter();
+    var worker = new Worker(imports.vfs);
 
     if (options.messageRoute) {
 
@@ -82,8 +85,10 @@ module.exports = function startup(options, imports, register) {
                 return;
             }
 
-            var transport = new SMITH.EngineIoTransport(socket);
+            var transport = new SMITH.EngineIoTransport(socket, options.debug);
             var id = false;
+
+            worker.connect(transport);
 
             transport.on("legacy", function (message) {
                 if (typeof message === "object" && message.type === "__ANNOUNCE-ID__") {
@@ -178,13 +183,25 @@ module.exports = function startup(options, imports, register) {
         }]);
 
         imports.static.addStatics([{
-            path: PATH.dirname(require.resolve("smith")),
+            path: PATH.dirname(require.resolve("vfs-socket/node_modules/smith")),
             mount: "/smith",
             rjs: [
                 {
                     "name": "smith",
                     "location": "smith",
                     "main": "smith.js"
+                }
+            ]
+        }]);
+
+        imports.static.addStatics([{
+            path: PATH.dirname(require.resolve("vfs-socket/consumer")),
+            mount: "/vfs-socket",
+            rjs: [
+                {
+                    "name": "vfs-socket",
+                    "location": "vfs-socket",
+                    "main": "consumer.js"
                 }
             ]
         }]);

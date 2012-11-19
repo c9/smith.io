@@ -99,6 +99,7 @@ module.exports = function startup(options, imports, register) {
                         };
                         gee.emit("connect", {
                             id: id,
+                            transport: connections[id].transport,
                             on: connections[id].ee.on.bind(connections[id].ee),
                             once: connections[id].ee.once.bind(connections[id].ee),
                             send: function(message) {

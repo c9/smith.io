@@ -1,11 +1,15 @@
 {
     "name": "smith.io",
-    "version": "0.0.37",
+    "version": "0.0.38",
     "author": "ajax.org B.V. <info@ajax.org>",
     "contributors": [
         {
             "name": "Christoph Dorn",
             "email": "christoph@christophdorn.com"
+        },
+        {
+            "name": "Mostafa Eweda",
+            "email": "mo.eweda@gmail.com"
         }
     ],
     "repository": {
@@ -16,7 +20,8 @@
     "dependencies": {
         "smith": "~0.1.17",
         "msgpack-js-browser": "~0.1.3",
-        "engine.io": "https://github.com/c9/engine.io/tarball/5f6fb9e32caed4f3edbb9f8536a13a20435d3d69"
+        "engine.io": "0.5.0",
+        "engine.io-client": "0.5.0"
     },
     "scripts": {
         "test": "node test/all.js"

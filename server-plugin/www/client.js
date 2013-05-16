@@ -26,8 +26,7 @@ define(function(require, exports, module) {
 			this.options.secure = true;
 		}
 		this.options.port = this.options.port || document.location.port;
-		this.options.path = "";
-		this.options.resource = this.options.prefix.replace(/^\/|\/$/g, "");
+		this.options.path = this.options.prefix;
 		delete this.options.prefix;
 		this.id = false;
 		this.serverId = false;

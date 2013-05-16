@@ -20,8 +20,7 @@ function engineForResource(server, resource, options) {
     }
 
     var engine = ENGINE_IO.attach(server, {
-        path: "",
-        resource: resource,
+        path: resource,
         pingTimeout: options.pingTimeout || 3000,
         pingInterval: options.pingInterval || 15000,
         pongPayload: options.pongPayload
@@ -155,13 +154,13 @@ module.exports = function startup(options, imports, register) {
     if (options.registerClientRoutes !== false) {
 
         imports.static.addStatics([{
-            path: PATH.dirname(require.resolve("engine.io/node_modules/engine.io-client/dist/engine.io.js")),
+            path: PATH.dirname(require.resolve("engine.io-client/engine.io.js")),
             mount: "/engine.io",
             rjs: [
                 {
                     "name": "engine.io",
                     "location": "engine.io",
-                    "main": "engine.io" + ((options.debug)?"-dev":"") + ".js"
+                    "main": "engine.io.js"
                 }
             ]
         }]);

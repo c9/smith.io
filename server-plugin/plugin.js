@@ -76,7 +76,6 @@ module.exports = function startup(options, imports, register) {
         }
 
         engine.on("connection", function (socket) {
-
             if (match && !match(socket.transport.request.url)) {
                 return;
             }
@@ -120,7 +119,7 @@ module.exports = function startup(options, imports, register) {
                             });
                             delete buffers[id];
                         }
-                        connections[id].ee.emit("back");
+                        connections[id].ee.emit("back", {transport: transport});
                     }
                 } else if (connections[id]) {
                     connections[id].ee.emit("message", message);

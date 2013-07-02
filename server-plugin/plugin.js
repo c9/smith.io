@@ -49,6 +49,9 @@ module.exports = function startup(options, imports, register) {
 
     var gee = new EVENTS.EventEmitter();
 
+    if (options.debug)
+        SMITH.debug = true;
+
     if (options.messageRoute) {
 
         var serverId = "server-id-" + Date.now();

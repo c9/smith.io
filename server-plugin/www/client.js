@@ -35,6 +35,7 @@ define(function(require, exports, module) {
         this.away = false;
         this.buffer = false;
         this.connectIndex = -1;
+        this.sequence = 0;
     }
 
     inherits(Transport, EVENTS.EventEmitter);
@@ -371,7 +372,13 @@ define(function(require, exports, module) {
         //     }
         //     this.buffer.push(message);
         // }
-        message
+        
+        if (message.length) {
+            message.push(++this.sequence);
+            if (this.sequence > 30000) 
+                this.sequence = 0;
+        }
+        
         this.transport.send(message);
     }
 

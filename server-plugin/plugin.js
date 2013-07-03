@@ -116,7 +116,6 @@ module.exports = function startup(options, imports, register) {
                                 }
                                 
                                 var transport = connections[id].transport;
-                                console.log("-------", transport.socket.readyState);
                                 if (timeouts[id] || transport.socket.readyState != "open") {
                                     buffers[id].push(message);
                                 } 

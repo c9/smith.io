@@ -5,10 +5,11 @@ define(function(require, exports, module) {
     var ENGINE_IO = eio;	// NOTE: `eio` is a global! See `npm info engine.io-client`.
     var SMITH = require("smith");
     var EVENTS = require("smith/events-amd");
-
+    
     var transports = [];
     var debugHandler = null;
     var connectCounter = 0;
+    var THRESHOLD = 300;
 
     function inherits(Child, Parent) {
         Child.prototype = Object.create(Parent.prototype, { constructor: { value: Child }});
@@ -36,6 +37,8 @@ define(function(require, exports, module) {
         this.buffer = false;
         this.connectIndex = -1;
         this.sequence = 0;
+        this.buffer  = [];
+        this.sbuffer = [];
     }
 
     inherits(Transport, EVENTS.EventEmitter);
@@ -304,19 +307,20 @@ define(function(require, exports, module) {
                             }
                         }
                         else if (options.reconnectAttempt > 0) {
+                            if (_self.buffer) {
+                                _self.buffer.forEach(function(message) {
+                                    _self.transport.send(message);
+                                });
+                                _self.buffer = [];
+                            }
+                            
                             try {
                                 _self.emit("back");
                             } catch(err) {
                                 console.error(err.stack);
-                            }								
+                            }
                         }
                         options.reconnectAttempt = 0;
-                        if (_self.buffer) {
-                            _self.buffer.forEach(function(message) {
-                                _self.transport.send(message);
-                            });
-                            _self.buffer = false;
-                        }
                     } else {
                         try {
                             _self.emit("message", message);
@@ -343,6 +347,15 @@ define(function(require, exports, module) {
 
                     if (_self.connected) {
                         _self.away = Date.now();
+                        
+                        var now = Date.now();
+                        _self.sbuffer.forEach(function(iter){
+                            if (now - iter[1] < THRESHOLD) {
+                                _self.buffer.push(iter[0]);
+                            }
+                        });
+                        _self.sbuffer = [];
+                        
                         try {
                             _self.emit("away");
                         } catch(err) {
@@ -366,12 +379,6 @@ define(function(require, exports, module) {
             console.log(err.stack);
             throw err;
         }
-        // else if(this.away) {
-        //     if (!this.buffer) {
-        //         this.buffer = [];
-        //     }
-        //     this.buffer.push(message);
-        // }
         
         if (message.length) {
             message.push(++this.sequence);
@@ -379,7 +386,24 @@ define(function(require, exports, module) {
                 this.sequence = 0;
         }
         
-        this.transport.send(message);
+        if (this.away) {
+            this.buffer.push(message);
+        }
+        else {
+            // Clear Existing Buffer > THRESHOLD
+            var now = Date.now();
+            var items = this.sbuffer;
+            for (var i = items.length - 1; i >= 0; i--) {
+                if (now - items[i][1] > THRESHOLD)
+                    items.splice(i, 1);
+            }
+            
+            // Add item to buffer
+            items.push([message, Date.now()]);
+            
+            // Send message
+            this.transport.send(message);
+        }
     }
 
     exports.connect = function(options, callback) {

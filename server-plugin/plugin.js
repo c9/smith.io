@@ -109,7 +109,7 @@ module.exports = function startup(options, imports, register) {
                             once: connections[id].ee.once.bind(connections[id].ee),
                             send: function(message) {
                                 // Sequence number used to catch duplicates
-                                if (message.length) {
+                                if (message.push) {
                                     message.push(++connections[id].sequence);
                                     if (connections[id].sequence > 30000)
                                         connections[id].sequence = 0;

@@ -380,7 +380,7 @@ define(function(require, exports, module) {
 			throw err;
 		}
 		
-		if (message.length) {
+		if (message.push) {
 			message.push(++this.sequence);
 			if (this.sequence > 30000) 
 				this.sequence = 0;

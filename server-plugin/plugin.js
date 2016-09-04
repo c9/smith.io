@@ -8,7 +8,7 @@ const EVENTS = require("events");
 
 // Switch from `away` to `disconnect` after this many milliseconds.
 const RECONNECT_TIMEOUT = 60 * 1000;
-
+const THRESHOLD = 300; // Time to detect the connection is gone
 
 var engines = [];
 
@@ -48,6 +48,9 @@ module.exports = function startup(options, imports, register) {
     }
 
     var gee = new EVENTS.EventEmitter();
+
+    if (options.debug)
+        SMITH.debug = true;
 
     if (options.messageRoute) {
 
@@ -91,23 +94,45 @@ module.exports = function startup(options, imports, register) {
                         delete timeouts[id];
                     }
                     if (!connections[id]) {
+                        buffers[id] = [];
+                        buffers["_" + id] = [];
                         connections[id] = {
                             ee: new EVENTS.EventEmitter(),
-                            transport: transport
+                            transport: transport,
+                            sequence: 0
                         };
+                        
                         gee.emit("connect", {
                             id: id,
                             transport: connections[id].transport,
                             on: connections[id].ee.on.bind(connections[id].ee),
                             once: connections[id].ee.once.bind(connections[id].ee),
                             send: function(message) {
-                                if (timeouts[id]) {
-                                    if (!buffers[id]) {
-                                        buffers[id] = [];
-                                    }
+                                // Sequence number used to catch duplicates
+                                if (message.push) {
+                                    message.push(++connections[id].sequence);
+                                    if (connections[id].sequence > 30000)
+                                        connections[id].sequence = 0;
+                                }
+                                
+                                var transport = connections[id].transport;
+                                if (timeouts[id] || transport.socket.readyState != "open") {
                                     buffers[id].push(message);
-                                } else if (connections[id]) {
-                                    connections[id].transport.send(message);
+                                } 
+                                else if (connections[id]) {
+                                    // Clear Existing Buffer > THRESHOLD
+                                    var now = Date.now();
+                                    var items = buffers["_" + id];
+                                    for (var i = items.length - 1; i >= 0; i--) {
+                                        if (now - items[i][1] > THRESHOLD)
+                                            items.splice(i, 1);
+                                    }
+                                    
+                                    // Add item to buffer
+                                    items.push([message, Date.now()]);
+                                    
+                                    // Send message
+                                    transport.send(message);
                                 }
                             }
                         });
@@ -115,9 +140,9 @@ module.exports = function startup(options, imports, register) {
                         connections[id].transport = transport;
                         if (buffers[id]) {
                             buffers[id].forEach(function(message) {
-                                connections[id].transport.send(message);
+                                transport.send(message);
                             });
-                            delete buffers[id];
+                            buffers[id] = [];
                         }
                         connections[id].ee.emit("back", {transport: transport});
                     }
@@ -137,8 +162,19 @@ module.exports = function startup(options, imports, register) {
                         connections[id].ee.emit("disconnect", reason);
                         delete connections[id];
                     }
+                    delete buffers[id];
+                    delete buffers["_" + id];
                     id = false;
                 }, RECONNECT_TIMEOUT);
+                
+                var now = Date.now();
+                buffers["_" + id].forEach(function(iter){
+                    if (now - iter[1] < THRESHOLD) {
+                        buffers[id].push(iter[0]);
+                    }
+                });
+                buffers["_" + id] = [];
+                
                 connections[id].ee.emit("away");
             });
 
